@@ -1,307 +1,156 @@
 # CompetitorAI
 
-**Evidence-Grounded Competitive Intelligence Copilot**
+CompetitorAI 是一个面向产品经理的竞品研究助手。
 
-CompetitorAI 是一个面向产品经理、AI 产品经理和创业者的 AI 竞品研究助手。
+当前版本用于比较 ChatGPT、Claude 和 Gemini 在部分产品能力上的差异，并生成一份带有来源、证据编号和限制说明的竞品简报。
 
-项目重点不是让大模型生成更长的竞品报告，而是解决一个更核心的问题：
+项目主要关注两个问题：
 
-> **AI 生成的竞品结论，是否真的有证据支持？用户能否快速追溯来源、限制和证据缺口？**
-
-当前版本为一个完成核心链路验证的 MVP，聚焦 ChatGPT、Claude 和 Gemini 三款 AI 产品的能力比较。
-
----
-
-## Why CompetitorAI?
-
-通用大模型已经可以快速生成竞品分析，但在实际使用中仍可能出现：
-
-- 有引用，但引用并不能真正支持对应结论
-- 产品功能、套餐或适用范围被过度概括
-- Prompt 无法稳定保证输出结构和长度
-- AI 自我审查仍可能漏掉具体事实错误
-- 局部检查通过，但最终结果仍不可交付
-
-因此，CompetitorAI 将竞品研究拆分为：
-
-**Evidence → Generation → Validation → Review → Delivery**
-
-通过证据追溯、程序化检查和语义审查，让 AI 输出更容易被检查，而不是默认相信模型生成结果。
+- 生成的结论能不能追溯到具体证据；
+- 输出出现格式、引用或证据不足时，系统能不能明确识别出来。
 
 ---
 
-## Target Users
+## 当前功能
 
-首版目标用户：
-
-- Product Manager
-- AI Product Manager
-- Founder / Startup Team
-
-核心场景：
-
-快速比较多个 AI 产品的能力差异，并获得一份包含证据、限制和审查状态的竞品决策简报。
-
----
-
-## MVP Scope
-
-当前 MVP 比较：
-
-- ChatGPT
-- Claude
-- Gemini
-
-聚焦三个能力维度：
+目前比较三个维度：
 
 1. 工作成果创建与编辑
 2. 工具连接与任务执行
-3. 内容复用与协作机制
+3. 内容组织、复用与协作
 
-输出包括：
+输出内容包括：
 
-- 三方能力对照表
-- 两条有证据支持的观察
-- 一项明确标记为假设的产品设计提案
-- Evidence ID 与来源
-- 置信度与适用范围
-- Evidence Gap
-- 程序检查与语义审查状态
+- ChatGPT / Claude / Gemini 三方能力对照表
+- 两条基于现有证据的观察
+- 一条产品设计假设
+- Evidence ID
+- 来源和置信度
+- 证据不足说明
+- 检查和审查结果
 
-当前版本使用冻结的历史 Evidence 进行验证，因此**不声称相关产品信息仍然是最新状态**。
+当前版本使用固定的历史 Evidence 作为输入，因此示例结果不代表相关产品的最新状态。
 
 ---
 
-## How It Works
+## 工作流程
 
 ```text
 Frozen Evidence
       ↓
 Evidence Selection
       ↓
-AI Brief Generation
+Brief Generation
       ↓
-Programmatic Validation
+Programmatic Checks
       ↓
 Semantic Review
       ↓
-Brief + Sources + Gaps + Review Status
+Final Brief
 ```
 
-### 1. Evidence Selection
+### Evidence Selection
 
-从冻结数据中选择与当前比较场景相关的 Verified Evidence，并保留：
+从现有 Verified Evidence 中选择与当前比较任务相关的证据。
+
+每条证据保留：
 
 - Evidence ID
+- 产品
+- 对应比较维度
 - 来源
 - 原始主张
 - 置信度
-- 适用限制
-- Evidence Gap
+- 使用限制
 
-### 2. AI Brief Generation
+当前 MVP 使用 12 条 Verified Evidence。
 
-模型基于选定 Evidence 生成竞品简报。
+### Brief Generation
 
-事实主张必须关联对应 Evidence ID；证据不足时显式标记，而不是自动补全。
+模型根据选定 Evidence 生成简报。
 
-### 3. Programmatic Validation
+事实主张需要关联对应 Evidence ID；如果现有证据不足，则直接标记为证据不足，不自动补全。
 
-通过确定性规则检查：
+### Programmatic Checks
+
+生成后会进行确定性检查，包括：
 
 - Evidence ID 是否有效
-- 引用范围是否符合要求
-- Markdown 表格是否可正常渲染
-- 输出长度是否符合约束
+- 引用是否属于对应产品和比较维度
+- Markdown 表格结构是否正确
 - 必要字段是否存在
-- Evidence Gap 是否被显式展示
+- 正文长度是否符合要求
+- 证据缺口是否明确展示
 
-### 4. Semantic Review
+### Semantic Review
 
-通过单独的模型调用检查：
+另外进行一次语义审查，检查：
 
-- Evidence 是否真正支持对应主张
+- Evidence 是否能够支持对应主张
 - 是否存在过度概括
-- 产品、套餐或能力归属是否存在问题
+- 产品或套餐归属是否有问题
 - 是否遗漏重要限制
-- 产品假设是否与已验证事实明确区分
+- 产品假设是否和事实内容区分开
 
-语义审查仍可能漏检，因此不能将 Review PASS 等同于事实绝对正确。
-
----
-
-## Architecture
-
-```text
-┌─────────────────────┐
-│   Frozen Evidence   │
-│  Verified Evidence  │
-└──────────┬──────────┘
-           ↓
-┌─────────────────────┐
-│ Evidence Selection  │
-│ ID / Source / Gap   │
-└──────────┬──────────┘
-           ↓
-┌─────────────────────┐
-│   LLM Generation    │
-│ Competitive Brief   │
-└──────────┬──────────┘
-           ↓
-┌─────────────────────────┐
-│ Programmatic Validation │
-│ Format / ID / Length    │
-└──────────┬──────────────┘
-           ↓
-┌─────────────────────┐
-│   Semantic Review   │
-│  Claim ↔ Evidence   │
-└──────────┬──────────┘
-           ↓
-┌─────────────────────────┐
-│     Final Deliverable   │
-│ Brief / Sources / Gaps  │
-│     Review Status       │
-└─────────────────────────┘
-```
+语义审查作为辅助检查使用，不代表事实一定正确。
 
 ---
 
-## Validation Results
+## 示例输出
 
-当前 MVP 已完成真实生成和审查流程验证。
+最终简报主要包含以下内容：
 
-### 已完成
+| 维度 | ChatGPT | Claude | Gemini |
+|---|---|---|---|
+| 创建与编辑 | Evidence | Evidence | Evidence |
+| 工具与任务 | Evidence Gap | Evidence | Evidence |
+| 复用与协作 | Evidence | Evidence | Evidence |
 
-- 12 条 Verified Evidence 作为 MVP 输入
-- 完成一次真实 AI 简报生成
-- 完成一次单独语义审查
-- 30 项相关离线测试通过
-- Fact ID 与引用范围检查
-- Markdown 表格格式检查
-- 输出长度检查
+同时附带：
+
+- Evidence ID
+- 来源
+- 置信度
+- 适用范围
+- Evidence Gap
+- Review Status
+
+示例简报：
+
+`examples/sample-brief.md`
+
+审查结果：
+
+`examples/sample-review.md`
+
+---
+
+## 验证结果
+
+当前版本已经完成一次真实简报生成和一次单独的语义审查。
+
+目前完成：
+
+- 12 条 Verified Evidence 输入
+- 一次真实简报生成
+- 一次独立语义审查
+- 30 项相关离线测试
+- Fact ID 检查
+- 引用范围检查
+- Markdown 表格检查
+- 长度检查
 - Evidence Gap 检查
-- 历史失败记录保留
-- 使用历史模型产物完成确定性重放
+- 确定性重放验证
 
-最终候选简报正文约 **1,804 字符**。
+最终候选简报正文约 1,804 字符。
 
-### 一个真实失败案例
+在测试过程中曾发现 Markdown 表格行之间出现空行的问题。原有检查没有识别这一情况，后续修复了表格生成逻辑，并增加相应的回归测试。
 
-首次真实运行中，程序检查未发现 Markdown 表格内部存在空行，导致检查结果局部通过，但最终展示格式不合格。
-
-随后：
-
-1. 定位表格渲染逻辑问题
-2. 修复 Markdown 输出
-3. 增加错误格式回归测试
-4. 使用原始模型产物重新渲染
-5. 不重新调用模型
-6. 保留原始失败记录
-
-这个问题说明：
-
-> **Validation PASS 不代表产品最终可交付，验收规则本身也需要通过真实失败案例持续验证。**
+修复后使用原始模型产物重新渲染，没有重新生成内容。
 
 ---
 
-## Product Iteration
-
-### Baseline
-
-原版 DeerFlow 可以搜索并生成竞品报告，但存在来源优先级、事实准确性和引用支持关系问题。
-
-### V1
-
-增加：
-
-- CompetitorAI Skill
-- 固定报告结构
-- Source Priority
-- Fact Verification Prompt
-
-结果：
-
-结构改善，但事实质量验收仍未通过。
-
-### V2
-
-增加：
-
-- 独立 Validator
-- FAIL Gate
-- Auto Revision
-- Re-audit
-
-结果：
-
-能够拦截部分不合格报告，但正式 E2E 仍然 FAIL。
-
-### V3
-
-进一步增加 Evidence Admission、Fact Ledger 和更严格的验收逻辑。
-
-实验中发现：
-
-- 长篇 JSON 输出容易解析失败
-- Prompt 无法稳定控制正文长度
-- 格式正确不等于事实正确
-- 语义审查也可能漏掉具体错误
-
-因此，项目最终从完整长报告收敛为当前的窄场景 MVP。
-
----
-
-## Key Product Decision
-
-项目最重要的产品决策之一，是**停止继续追求完整 11 节竞品报告，转而验证一个更小、更可控的核心链路**。
-
-原因：
-
-- 完整链路中的不确定因素过多
-- 输出长度和结构不稳定
-- 难以定位事实错误来自哪个环节
-- 继续扩展功能并不能证明产品核心价值
-
-因此，当前阶段优先验证：
-
-```text
-Evidence → Generation → Validation → Review
-```
-
-而不是继续增加报告长度或复杂功能。
-
----
-
-## Known Limitations
-
-当前项目仍存在明确边界：
-
-- 尚未进行真实用户实验
-- 没有经过验证的准确率指标
-- 没有经过验证的效率提升数据
-- 冻结 Evidence 无法证明产品当前仍然可用
-- 部分套餐、地域和来源脚注仍存在未核实项
-- 语义审查仍可能漏检具体事实错误
-- 当前结果仅验证窄场景 MVP
-- 原始 V3 Coverage 仍为 **3/6**
-- 原始 V3 Overall Acceptance 仍为 **FAIL**
-
-因此，本项目不声称已经达到生产级可靠性。
-
----
-
-## Tech Stack
-
-- Python
-- ByteDance DeerFlow 2.0
-- DeepSeek API
-- Unittest
-- Ruff
-
----
-
-## Repository Structure
+## 项目结构
 
 ```text
 competitorai/
@@ -309,8 +158,7 @@ competitorai/
 ├── docs/
 │   ├── architecture.md
 │   ├── product-design.md
-│   ├── validation-and-limitations.md
-│   └── iteration-history.md
+│   └── validation-and-limitations.md
 ├── examples/
 │   ├── sample-brief.md
 │   └── sample-review.md
@@ -324,40 +172,46 @@ competitorai/
 
 ---
 
-## Reproduction
+## 技术栈
 
-本仓库主要用于展示 CompetitorAI MVP 的产品设计、核心实现和验证过程。
+- Python
+- ByteDance DeerFlow 2.0
+- DeepSeek API
+- Unittest
+- Ruff
 
-完整实验依赖：
+---
+
+## 当前边界
+
+这个项目目前是一个可运行的 MVP，并不是生产级产品。
+
+当前还没有完成：
+
+- 实时竞品搜索
+- 最新产品信息验证
+- 真实用户测试
+- 大规模事实准确率评估
+- 生产环境部署
+- 多模型对比评测
+
+部分历史 Evidence 还存在套餐资格、地域限制和来源脚注不完整的问题，因此这些内容在示例中会明确标注限制。
+
+---
+
+## 复现说明
+
+完整运行依赖：
 
 - DeerFlow 2.0 环境
 - 原始冻结 Evidence
 - 模型 API 配置
 
-本仓库不包含：
+公开仓库不会包含：
 
 - API Key
 - 私有配置
-- 本地路径信息
+- 本地用户路径
 - 敏感运行日志
 
----
-
-## Project Status
-
-**MVP Core Workflow Validated**
-
-当前版本已经完成核心链路验证和求职作品集整理，但尚未完成真实用户验证和生产化。
-
----
-
-## What I Learned
-
-这个项目让我重点验证了几个 AI 产品设计原则：
-
-1. AI 输出质量不能只依赖 Prompt。
-2. 引用存在，不代表引用支持结论。
-3. 程序化规则与语义审查应该解决不同类型的问题。
-4. AI 审查结果本身也需要被限制和验证。
-5. POC 的目标不是证明方案一定成功，而是尽快减少最大的不确定性。
-6. 当完整方案验证成本过高时，应主动缩小 MVP，而不是继续堆功能。
+README 中展示的示例主要用于说明当前 MVP 的工作方式和验证结果。
