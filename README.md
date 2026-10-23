@@ -1,12 +1,12 @@
 # CompetitorAI
 
-Evidence-Grounded Competitive Intelligence Copilot**
+**Evidence-Grounded Competitive Intelligence Copilot**
 
 CompetitorAI 是一个面向产品经理、AI 产品经理和创业者的 AI 竞品研究助手。
 
 项目重点不是让大模型生成更长的竞品报告，而是解决一个更核心的问题：
 
-> AI 生成的竞品结论，是否真的有证据支持？用户能否快速追溯来源、限制和证据缺口?
+> **AI 生成的竞品结论，是否真的有证据支持？用户能否快速追溯来源、限制和证据缺口？**
 
 当前版本为一个完成核心链路验证的 MVP，聚焦 ChatGPT、Claude 和 Gemini 三款 AI 产品的能力比较。
 
