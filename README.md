@@ -2,242 +2,375 @@
 
 **Evidence-Grounded Competitive Intelligence Copilot**
 
-CompetitorAI 是一个面向产品经理的竞品研究助手。
+基于证据追溯的 AI 竞品研究助手。
 
-当前版本用于比较 ChatGPT、Claude 和 Gemini 在部分产品能力上的差异，并生成一份带有证据来源、Evidence ID 和证据缺口说明的竞品简报。
+CompetitorAI 是一个面向产品经理、AI 产品经理和创业者的个人 MVP，用于比较 AI 产品能力差异，并生成带有 **Evidence ID、来源、证据缺口和审查状态** 的竞品简报。
 
-项目目前主要解决两个问题：
+当前 MVP 聚焦：
 
-- 竞品分析中的关键结论能否追溯到具体证据；
-- 当引用、格式或证据存在问题时，系统能否及时识别，而不是直接输出一份“看起来正确”的报告。
+- ChatGPT
+- Claude
+- Gemini
 
----
-
-## 当前版本能做什么
-
-目前支持对 ChatGPT、Claude 和 Gemini 进行三个维度的比较：
+以及三个比较维度：
 
 1. 工作成果创建与编辑
 2. 工具连接与任务执行
 3. 内容组织、复用与协作
 
-系统最终输出：
-
-- 三方能力对照表
-- 基于现有证据的关键观察
-- 明确区分事实与假设的产品设计假设
-- Evidence ID
-- 来源与置信度
-- 适用范围
-- Evidence Gap
-- 检查与审查状态
+> 当前示例基于固定的历史 Frozen Evidence，用于验证产品链路，不代表 ChatGPT、Claude 或 Gemini 的最新实时状态。
 
 ---
 
-## 工作流程
+## Why this project
+
+这个项目关注的不是：
+
+> AI 能不能生成一份看起来完整的竞品报告？
+
+而是几个更具体的问题：
+
+- 生成的结论能否追溯到具体 Evidence？
+- 有引用时，引用是否真的支持对应 Claim？
+- Evidence 不足时，系统能否明确暴露 Gap，而不是让模型自动补全？
+- 格式检查通过之后，内容是否仍然可能存在事实或语义问题？
+
+因此，CompetitorAI 将竞品简报拆成一条可检查的生成链路：
 
 ```text
 Verified Evidence
-       ↓
+        ↓
 Evidence Selection
-       ↓
+        ↓
 Brief Generation
-       ↓
+        ↓
 Programmatic Checks
-       ↓
+        ↓
 Semantic Review
-       ↓
+        ↓
 Competitive Brief
 ```
 
-### 1. Evidence Selection
+---
 
-从已有 Verified Evidence 中选择与当前研究任务相关的证据。
+## MVP Scope
 
-每条证据保留：
+当前版本使用 **12 条固定 Verified Evidence**。
+
+每条 Evidence 保留：
 
 - Evidence ID
-- 对应产品
-- 比较维度
-- 原始主张
-- 来源
-- 置信度
-- 使用限制
+- Product
+- Dimension
+- Claim
+- Source
+- Confidence
+- Scope / Limitation
 
-当前 MVP 使用 12 条 Verified Evidence。
+POC 阶段暂时冻结 Search、Fetch 和 Evidence Extraction，先单独验证：
+
+```text
+Evidence → Generation → Validation → Review
+```
+
+这样做的目的不是证明完整产品已经成立，而是减少实验变量，优先验证最关键的不确定性：
+
+1. Verified Evidence 能否稳定作为模型输入
+2. Claim 能否绑定对应 Evidence ID
+3. 确定性错误能否通过程序规则拦截
+4. Claim 与 Evidence 的语义支持关系能否被单独审查
+5. Evidence 不足时系统能否选择暴露 Gap，而不是自动补全
 
 ---
 
-### 2. Brief Generation
+## Output
 
-模型根据选定 Evidence 生成竞品简报。
+当前 Competitive Brief 包含：
 
-事实内容需要关联对应 Evidence ID。
+- ChatGPT / Claude / Gemini 三方能力对照表
+- 两条基于 Evidence 的观察
+- 一个明确标记为 **Hypothesis** 的产品设计假设
+- Evidence ID
+- 来源与置信度
+- Evidence Gap
+- Scope / Limitation
+- Review Status
 
-如果现有证据无法支持某项比较，系统会明确显示 Evidence Gap，而不是自动补充未经验证的信息。
+如果某个产品在某个维度缺少足够 Evidence，系统不会允许模型自由补全，而是明确显示：
+
+**Evidence Gap**
+
+这里的 Gap 表示：
+
+> 当前研究输入不足以支持结论。
+
+它并不表示该产品一定不存在对应能力。
 
 ---
 
-### 3. Programmatic Checks
+## Programmatic Checks
 
-生成结果会经过程序化检查，目前包括：
+模型输出之后首先进入确定性检查。
+
+当前检查包括：
 
 - Evidence ID 是否存在
-- 引用是否属于对应产品和比较维度
-- 必要字段是否完整
-- Markdown 表格结构是否正确
-- 正文长度是否符合要求
-- Evidence Gap 是否明确展示
+- Product 是否匹配
+- Dimension 是否匹配
+- 引用是否处于允许范围
+- 必要字段是否存在
+- Markdown 表格是否合法
+- Evidence Gap 是否显式展示
+- 正文长度是否符合约束
 
-这些检查主要用于处理可以通过确定性规则判断的问题。
+正文长度：
+
+- Target：1,500–2,500 字符
+- Hard limit：5,000 字符
+
+这些检查主要处理可以通过程序规则明确判断的问题。
+
+它们不会尝试判断一个 Claim 在语义上是否真的被 Evidence 支持。
 
 ---
 
-### 4. Semantic Review
+## Semantic Review
 
-在程序检查之外，再进行一次单独的语义审查。
+Programmatic Checks 之后，会进行一次单独的 Semantic Review。
 
 主要检查：
 
-- Evidence 是否真正支持对应主张
+- Claim 是否得到 Evidence 支持
 - 是否存在过度概括
-- 产品或套餐归属是否存在问题
+- 产品或套餐归属是否错误
 - 是否遗漏重要限制
-- 产品设计假设是否与事实内容区分
+- Hypothesis 是否被误写成事实
 
-语义审查用于辅助发现程序规则难以识别的问题。
+需要特别说明：
+
+**Semantic Review PASS ≠ 所有事实绝对正确。**
+
+它只是整个质量控制流程中的一层。
 
 ---
 
-## Example Output
+## Validation Snapshot
 
-简报的核心结构类似：
+当前 MVP 已完成：
 
-| 能力维度 | ChatGPT | Claude | Gemini |
-|---|---|---|---|
-| 创建与编辑 | Evidence | Evidence | Evidence |
-| 工具与任务执行 | Evidence Gap | Evidence | Evidence |
-| 组织、复用与协作 | Evidence | Evidence | Evidence |
+- 12 条 Frozen Verified Evidence 输入
+- 1 次真实 Competitive Brief 生成
+- 1 次独立 Semantic Review
+- 30 项相关离线测试
+- Evidence ID / scope 检查
+- Evidence Gap 检查
+- Markdown table validation
+- 长度边界测试
+- 输入篡改测试
+- deterministic replay
+- Ruff check
+- Ruff format check
 
-每个结论可以进一步查看对应的：
+最终候选 Brief 正文约 **1,804 字符**。
+
+> 30 项测试通过主要证明输入契约、输出契约以及程序化 fail-closed 行为。
+>
+> 它不代表事实准确率为 100%，目前也没有基于大规模人工标注数据集计算事实准确率。
+
+---
+
+## Failure Case
+
+项目中保留了一个真实失败案例。
+
+第一次真实运行时：
+
+- Brief Generation 完成
+- Semantic Review 返回 PASS
+- 最终就绪评估仍然 FAIL
+
+问题不是事实内容，而是 **Markdown 表格渲染错误**。
+
+原来的渲染方式在：
+
+```text
+header
+separator
+data row
+```
+
+之间错误加入空行。
+
+结果是：
+
+> 部分原有程序检查能够通过，但 Markdown 表格实际上无法正常渲染。
+
+后续处理：
+
+1. 定位表格渲染逻辑
+2. 修复表格内部换行
+3. 新增 `check_markdown_table()`
+4. 增加对应回归测试
+5. 使用原始模型结构化输出进行 deterministic replay
+6. 不重新调用模型生成内容
+7. 保留原始失败记录
+
+修复后：
+
+- 错误格式会被拒绝
+- 正确格式可以通过
+- 不需要重新生成模型内容
+
+这个案例也说明：
+
+> Validation 本身同样需要被验证。
+
+---
+
+## Content Review Cases
+
+除了程序错误，人工内容复核也发现过 Evidence 使用边界问题。
+
+### F68
+
+Evidence 直接支持：
+
+> Claude Projects 可以组织聊天和文档。
+
+但“特定复用机制”属于进一步解释，并没有被该 Evidence 直接证明。
+
+最终改为只保留 Evidence 能够直接支持的内容。
+
+### Enterprise
+
+部分 Enterprise 排除理由来源于 Evidence Selection 的 Gap Metadata，而不是产品能力 Evidence。
+
+因此最终将其归类为：
+
+**证据选择范围说明**
+
+而不是产品能力事实。
+
+### Current availability
+
+部分 Frozen Evidence 可以支持历史套餐或能力归属，但没有重新验证：
+
+- 当前最新可用性
+- 地域限制
+- 部分套餐变化
+- 部分来源脚注
+
+因此这些内容保留 Scope / Limitation，而不作为实时产品状态使用。
+
+---
+
+## Example
+
+查看最终候选简报：
+
+[examples/sample-brief.md](examples/sample-brief.md)
+
+查看 Semantic Review 示例：
+
+[examples/sample-review.md](examples/sample-review.md)
+
+示例重点展示：
 
 ```text
 Claim
-↓
+  ↓
 Evidence ID
-↓
+  ↓
 Source
-↓
+  ↓
 Confidence
-↓
+  ↓
 Scope / Limitation
 ```
 
-示例简报：
-
-`examples/sample-brief.md`
-
-审查结果：
-
-`examples/sample-review.md`
-
 ---
 
-## Validation
+## Historical V3 Context
 
-当前版本已经完成真实生成和审查流程验证。
+CompetitorAI 之前曾尝试过范围更完整的 V3 Report Pipeline。
 
-目前完成：
+原始结果为：
 
-- 12 条 Verified Evidence 作为固定输入
-- 1 次真实竞品简报生成
-- 1 次单独语义审查
-- 30 项相关离线测试
-- Evidence ID 检查
-- 引用范围检查
-- Markdown 表格检查
-- 长度检查
-- Evidence Gap 检查
-- 历史结果的确定性重放验证
+- Mandatory Coverage：**3/6 = 50%**
+- Original Overall Acceptance：**FAIL**
 
-最终候选简报正文约 **1,804 字符**。
+这个结果没有为了 Portfolio 修改成 PASS。
 
-### 一个实际发现的问题
-
-真实运行过程中曾出现 Markdown 表格内部存在空行的问题。
-
-当时原有检查没有识别这个错误，导致部分程序检查通过，但最终表格无法按照预期展示。
-
-后续处理包括：
-
-1. 定位表格渲染逻辑
-2. 修复表格行之间的换行方式
-3. 增加对应的失败用例和回归测试
-4. 使用原始模型输出重新渲染
-5. 不重新调用模型生成内容
-
-修复后，相关离线测试重新通过。
-
----
-
-## Architecture
+当前求职版本将范围收窄到：
 
 ```text
-┌──────────────────────┐
-│  Verified Evidence   │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│  Evidence Selection  │
-│ ID / Source / Scope  │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│   Brief Generation   │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────────┐
-│   Programmatic Checks    │
-│ ID / Format / Length     │
-└──────────┬───────────────┘
-           ↓
-┌──────────────────────┐
-│   Semantic Review    │
-│ Claim ↔ Evidence     │
-└──────────┬───────────┘
-           ↓
-┌──────────────────────┐
-│ Competitive Brief    │
-│ Sources / Gaps /     │
-│ Review Status        │
-└──────────────────────┘
+Frozen Evidence
+→ Generation
+→ Validation
+→ Review
 ```
 
-更完整的说明见：
+目的是减少变量，单独验证 Evidence-grounded competitive brief 的核心链路。
 
-`docs/architecture.md`
+因此：
+
+**当前 MVP 核心链路验证通过，不代表原始完整 V3 Pipeline 已通过验收。**
 
 ---
 
 ## Repository Structure
 
 ```text
-competitorai/
+Competitor-AI/
 ├── README.md
+│
 ├── docs/
 │   ├── architecture.md
 │   ├── product-design.md
 │   └── validation-and-limitations.md
+│
 ├── examples/
 │   ├── sample-brief.md
 │   └── sample-review.md
+│
 ├── src/
-│   └── mvp/
+│   ├── README.md
+│   └── v3/
 │       └── mvp_brief.py
-├── tests/
-│   └── test_mvp_brief.py
-└── assets/
+│
+└── tests/
+    └── test_mvp_brief.py
 ```
+
+核心实现：
+
+[src/v3/mvp_brief.py](src/v3/mvp_brief.py)
+
+Regression tests：
+
+[tests/test_mvp_brief.py](tests/test_mvp_brief.py)
+
+---
+
+## Documents
+
+### Architecture
+
+[docs/architecture.md](docs/architecture.md)
+
+说明 Evidence、Generation、Programmatic Validation 和 Semantic Review 之间的关系。
+
+### Product Design
+
+[docs/product-design.md](docs/product-design.md)
+
+记录当前 MVP 的用户、问题定义、Scope 和产品取舍。
+
+### Validation & Limitations
+
+[docs/validation-and-limitations.md](docs/validation-and-limitations.md)
+
+记录测试范围、真实失败案例以及当前项目不能证明的内容。
 
 ---
 
@@ -246,39 +379,67 @@ competitorai/
 - Python
 - ByteDance DeerFlow 2.0
 - DeepSeek API
-- Unittest
+- unittest
 - Ruff
 
 ---
 
-## Current Scope
+## Public Repository Scope
 
-当前版本已经可以完成固定 Evidence 输入下的竞品简报生成、检查和审查流程。
+这个公开仓库是 CompetitorAI 当前 MVP 的 **Portfolio Snapshot**。
 
-目前有两个主要边界：
+它用于展示：
 
-- 当前使用冻结的历史 Evidence，因此示例结果不代表相关产品的最新状态；
-- 当前项目仍属于 MVP，没有按照生产环境要求进行部署。
+- 产品问题定义
+- Evidence-grounded workflow
+- Evidence selection contract
+- Programmatic validation
+- Semantic Review
+- Failure case
+- Regression tests
+- Competitive Brief 示例
+- 当前产品边界
 
-更详细的验证范围与已知限制见：
+公开的核心代码来自原 CompetitorAI / DeerFlow V3 项目环境。
 
-`docs/validation-and-limitations.md`
+完整原始运行仍依赖部分未包含在该 Portfolio Snapshot 中的组件，包括：
 
----
-
-## Reproduction
-
-完整运行需要：
-
-- DeerFlow 2.0 环境
-- 项目使用的 Frozen Evidence
+- `v3.frozen_downstream`
+- Frozen Evidence 输入文件
+- `mvp_selection.json`
+- DeerFlow 2.0 原项目运行环境
 - 模型 API 配置
 
-公开仓库不会包含：
+因此，当前公开仓库**不是一个完全独立安装的 Python package，也不应被理解为生产级部署版本**。
+
+仓库不会包含：
 
 - API Key
 - 私有配置
 - 本地用户路径
 - 敏感运行日志
 
-核心代码、测试逻辑、示例简报和验证说明会保留在仓库中，方便查看当前 MVP 的实现方式。
+---
+
+## Current Status
+
+当前项目定位：
+
+**完成核心链路验证的 AIPM 个人 MVP。**
+
+它已经验证：
+
+- 固定 Verified Evidence 可以进入结构化生成流程
+- Claim 可以绑定 Evidence ID
+- Evidence Gap 可以被显式暴露
+- 一部分确定性错误可以被程序拦截
+- Claim ↔ Evidence 可以增加独立语义审查层
+- 真实失败可以转化为 Regression Test
+
+它还没有证明：
+
+- 所有事实都正确
+- 产品数据是实时最新状态
+- 对所有竞品研究任务都有效
+- 已达到生产级可靠性
+- 已经存在真实用户增长或商业化验证
