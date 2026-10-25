@@ -168,6 +168,10 @@ Semantic Review 示例：
 
 [examples/sample-review.md](examples/sample-review.md)
 
+Evidence 索引：
+
+[examples/evidence-index.md](examples/evidence-index.md)
+
 ---
 
 ## Validation
