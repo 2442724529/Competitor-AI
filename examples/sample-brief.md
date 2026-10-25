@@ -48,7 +48,15 @@ CompetitorAI 不会使用未经验证的信息自动填满该单元格，而是�
 该内容属于产品设计假设，而不是由当前 Evidence 直接证明的事实。
 
 ---
+## Evidence Index
 
+本示例中使用的 Evidence ID、对应来源、日期和适用范围可在下方查看：
+
+[查看 Evidence 索引](evidence-index.md)
+
+Evidence ID 用于将简报中的具体 Claim 追溯到对应的研究依据。
+
+---
 ## Evidence Notes
 
 ### ChatGPT
