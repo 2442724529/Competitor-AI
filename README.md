@@ -323,6 +323,7 @@ Frozen Evidence
 ```text
 Competitor-AI/
 ├── README.md
+├── .gitignore
 │
 ├── docs/
 │   ├── architecture.md
