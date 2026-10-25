@@ -16,17 +16,19 @@
 
 ## Review Summary
 
-**Review Status: PASS**
+**Targeted Review Status: PASS**
 
-本次审查针对当前示例简报中的修改及受影响内容进行检查。
+**Review Scope：8 个修改及受影响单元**
 
-共审查 8 个受影响单元，均未发现需要阻断交付的语义问题。
+本次审查只针对内容收尾阶段发生修改或受到修改影响的部分进行检查。
 
-需要注意：
+在当前 Frozen Evidence 和本次审查范围内，8 个受影响单元均未发现需要判定为 FAIL 的语义问题。
 
-**Review PASS 不代表所有事实绝对正确。**
+需要特别说明：
 
-它只表示在当前 Evidence 和当前审查范围内，没有发现足以判定 FAIL 的问题。
+> 本次 PASS 只适用于上述审查范围，不代表整篇 Competitive Brief 被重新认证，也不代表所有事实绝对正确。
+
+Semantic Review 是当前质量控制流程中的一层，最终结果仍需要结合 Evidence Scope、程序化检查和必要的人工复核进行理解。
 
 ---
 
